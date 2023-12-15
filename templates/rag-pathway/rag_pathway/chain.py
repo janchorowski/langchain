@@ -4,7 +4,7 @@ from langchain.pydantic_v1 import BaseModel
 from langchain.schema.output_parser import StrOutputParser
 from langchain.schema.runnable import RunnableParallel, RunnablePassthrough
 
-from langchain.vectorstores.pathway import (
+from langchain.vectorstores import (
     PathwayVectorClient,
     PathwayVectorServer,
 )
