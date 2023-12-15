@@ -6,7 +6,7 @@ authors = ["Jan Chorowski <janek@pathway.com>", "Berke Can Rizai <berke@pathway.
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.8.1,<4.0"
+python = ">=3.10,<4.0"
 langchain = ">=0.0.313, <0.1"
 openai = ">=1.2.4"
 pathway = ">=0.7.5"
