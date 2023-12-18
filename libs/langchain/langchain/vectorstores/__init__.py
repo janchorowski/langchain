@@ -271,10 +271,12 @@ def _import_pathway_vector_client() -> Any:
 
     return PathwayVectorClient
 
+
 def _import_pathway_vector_server() -> Any:
     from langchain.vectorstores.pathway import PathwayVectorServer
 
     return PathwayVectorServer
+
 
 def _import_pgembedding() -> Any:
     from langchain.vectorstores.pgembedding import PGEmbedding
