@@ -2,9 +2,9 @@
 Pathway vector store server and client.
 
 
-The PathwayVectorServer builds a pipeline which indexes all files in a given folder, embeds
-them and builds a vector index. The pipeline reacts to changes in source files, automatically
-updating appropriate index entries.
+The PathwayVectorServer builds a pipeline which indexes all files in a given folder,
+embeds them and builds a vector index. The pipeline reacts to changes in source files,
+automatically updating appropriate index entries.
 
 The PathwayVectorClient implements the LangChain VectorStore interface and queries the
 PathwayVectorServer to retrieve up-to-date documents.
@@ -13,17 +13,17 @@ PathwayVectorServer to retrieve up-to-date documents.
 
 from typing import Callable, List, Optional
 
-from langchain_core.documents import BaseDocumentTransformer, Document
-from langchain_core.schema.embeddings import Embeddings
-from langchain_core.vectorstores import VectorStore
-
 import pathway as pw
+from langchain_core.documents import BaseDocumentTransformer, Document
+from langchain_core.embeddings import Embeddings
+from langchain_core.vectorstores import VectorStore
 from pathway.xpacks.llm import vector_store
 
 
 class PathwayVectorServer:
     """
-    Build an autoupdating document indexing pipeline for approximate nearest neighbor search.
+    Build an autoupdating document indexing pipeline
+    for approximate nearest neighbor search.
 
     Args:
         embedder - embedding model e.g. OpenAIEmbeddings
@@ -76,14 +76,14 @@ class PathwayVectorServer:
         Args:
             - host: host to bind the HTTP listener
             - port: port to bind the HTTP listener
-            - docs: pathway tables typically coming out of connectors which contain source
-              documents.
+            - docs: pathway tables typically coming out of connectors which contain
+              source documents.
             - threaded: if True, run in a thread. Else block computation
             - with_cache: if True, embedding requests for the same contents are cached
             - cache_backend: the backend to use for caching if it is enabled. The
               default is the disk cache, hosted locally in the folder ``./Cache``. You
-              can use ``Backend`` class of the
-              [`persistence API`](/developers/api-docs/persistence-api/#pathway.persistence.Backend)
+              can use ``Backend`` class of the [`persistence API`]
+              (/developers/api-docs/persistence-api/#pathway.persistence.Backend)
               to override it.
 
         Returns:
@@ -117,7 +117,8 @@ class PathwayVectorClient(VectorStore):
     ) -> List[str]:
         """Pathway is not suitable for this method."""
         raise NotImplementedError(
-            "Pathway vector store does not support adding or removing texts from client."
+            "Pathway vector store does not support adding or removing texts"
+            " from client."
         )
 
     @classmethod
