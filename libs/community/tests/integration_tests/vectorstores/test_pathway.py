@@ -1,5 +1,4 @@
 """Test Pathway vector store functionality."""
-import logging
 import os
 import shutil
 import sys
@@ -16,6 +15,8 @@ from tests.integration_tests.vectorstores.fake_embeddings import FakeEmbeddings
 
 PATHWAY_HOST = "127.0.0.1"
 PATHWAY_PORT = 8754
+PATHWAY_DIR = "/tmp/pathway-samples/"
+
 
 def pathway_server():
     import pathway as pw
@@ -23,7 +24,7 @@ def pathway_server():
     data_sources = []
     data_sources.append(
         pw.io.fs.read(
-            "/tmp/pathway-samples/",
+            PATHWAY_DIR,
             format="binary",
             mode="streaming",
             with_metadata=True,
@@ -32,28 +33,32 @@ def pathway_server():
 
     embeddings_model = FakeEmbeddings()
 
-    vector_server = PathwayVectorServer(
-        *data_sources, embedder=embeddings_model
+    vector_server = PathwayVectorServer(*data_sources, embedder=embeddings_model)
+    thread = vector_server.run_server(
+        host=PATHWAY_HOST,
+        port=PATHWAY_PORT,
+        threaded=True,
+        with_cache=False,
     )
-    vector_server.run_server(host=PATHWAY_HOST, port=PATHWAY_PORT, threaded=True, with_cache=True)
-    
+    thread.join()
+
+
 @pytest.mark.skipif(
     sys.version_info < (3, 10),
-    reason="Pathway requires python 3.10 or higher"
+    reason="Pathway requires python 3.10 or higher",
 )
 class TestPathway:
     @classmethod
     def setup_class(cls) -> None:
-        os.mkdir("/tmp/pathway-samples")
-        with open("/tmp/pathway-samples/file_one.txt", "w+") as f:
+        os.mkdir(PATHWAY_DIR)
+        with open(f"{PATHWAY_DIR}file_one.txt", "w+") as f:
             f.write("foo")
-    
+
     @classmethod
     def teardown_class(cls):
-        shutil.rmtree('/tmp/pathway-samples')
-        
+        shutil.rmtree(PATHWAY_DIR)
+        pass
 
-    @pytest.mark.vcr(ignore_localhost=True)
     def test_similarity_search_without_metadata(self) -> None:
         p = Process(target=pathway_server)
         p.start()
