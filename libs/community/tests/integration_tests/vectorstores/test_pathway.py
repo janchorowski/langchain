@@ -14,7 +14,8 @@ from langchain_community.vectorstores.pathway import (
 )
 from tests.integration_tests.vectorstores.fake_embeddings import FakeEmbeddings
 
-logging.basicConfig(level=logging.DEBUG)
+PATHWAY_HOST = "127.0.0.1"
+PATHWAY_PORT = 8754
 
 def pathway_server():
     import pathway as pw
@@ -34,7 +35,7 @@ def pathway_server():
     vector_server = PathwayVectorServer(
         *data_sources, embedder=embeddings_model
     )
-    vector_server.run_server(host="127.0.0.1", port=8733, threaded=True, with_cache=True)
+    vector_server.run_server(host=PATHWAY_HOST, port=PATHWAY_PORT, threaded=True, with_cache=True)
     
 @pytest.mark.skipif(
     sys.version_info < (3, 10),
@@ -57,7 +58,7 @@ class TestPathway:
         p = Process(target=pathway_server)
         p.start()
         time.sleep(6)
-        client = PathwayVectorClient(host="127.0.0.1", port=8733)
+        client = PathwayVectorClient(host=PATHWAY_HOST, port=PATHWAY_PORT)
         output = client.similarity_search("foo")
         p.terminate()
         time.sleep(2)
