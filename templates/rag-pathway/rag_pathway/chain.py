@@ -9,6 +9,9 @@ from langchain.vectorstores import (
     PathwayVectorServer,
 )
 
+HOST = "127.0.0.1"
+PORT = "8780"
+
 # If you have a running Pathway Vectorstore instance you can connect to it via client. If not, you can run Vectorstore as follows:
 create_vectorstore = True
 if create_vectorstore:
@@ -16,9 +19,6 @@ if create_vectorstore:
     import pathway as pw
     from langchain.text_splitter import CharacterTextSplitter
     from langchain.embeddings import OpenAIEmbeddings
-
-    HOST = "127.0.0.1"
-    PORT = "8780"
 
     data_sources = []
     data_sources.append(
