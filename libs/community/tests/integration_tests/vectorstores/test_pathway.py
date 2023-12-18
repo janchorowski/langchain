@@ -47,6 +47,7 @@ def pathway_server():
     sys.version_info < (3, 10),
     reason="Pathway requires python 3.10 or higher",
 )
+@pytest.mark.requires("pathway")
 class TestPathway:
     @classmethod
     def setup_class(cls) -> None:
