@@ -9,7 +9,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import PathwayVectorClient, PathwayVectorServer
 
 HOST = "127.0.0.1"
-PORT = "8780"
+PORT = 8780
 
 # If you have a running Pathway Vectorstore instance you can connect to it via client.
 # If not, you can run Vectorstore as follows:
