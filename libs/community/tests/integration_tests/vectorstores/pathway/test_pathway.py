@@ -7,7 +7,7 @@ import time
 from multiprocessing import Process
 
 HOST = "127.0.0.1"
-PORT = 8782
+PORT = 8784
 
 data_sources = []
 data_sources.append(
@@ -37,7 +37,7 @@ def pathway_server():
 def run_app():
     p = Process(target=pathway_server)
     p.start()
-    time.sleep(6)
+    time.sleep(10)
     return p
 
 def dummy_search():
@@ -60,7 +60,7 @@ def test_stats():
     assert 'file_count' in stats_dict
 
     process.terminate()
-    time.sleep(6)
+    time.sleep(12)
     
 def test_similarity_search_results():
     process = run_app()
@@ -70,7 +70,7 @@ def test_similarity_search_results():
     assert len(results) == 2
 
     process.terminate()
-    time.sleep(6)
+    time.sleep(12)
 
 def test_similarity_search_metadata():
     process = run_app()
@@ -80,4 +80,4 @@ def test_similarity_search_metadata():
     assert metadata_dict is not None
 
     process.terminate()
-    time.sleep(6)
+    time.sleep(12)
