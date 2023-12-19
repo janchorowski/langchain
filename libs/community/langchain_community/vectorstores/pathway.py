@@ -18,7 +18,6 @@ from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import VectorStore
 
 if TYPE_CHECKING:
-    import pathway as pw
     from pathway.xpacks.llm import vector_store
 
 class PathwayVectorServer:
@@ -34,7 +33,7 @@ class PathwayVectorServer:
 
     def __init__(
         self,
-        *docs: pw.Table,
+        *docs,
         embedder: Embeddings,
         parser: Optional[Callable[[bytes], List[Document]]] = None,
         splitter: Optional[BaseDocumentTransformer] = None,
@@ -76,7 +75,7 @@ class PathwayVectorServer:
         port,
         threaded=False,
         with_cache=True,
-        cache_backend: pw.persistence.Backend | None = None,
+        cache_backend=None,
     ):
         """
         Run the server and start answering queries.
