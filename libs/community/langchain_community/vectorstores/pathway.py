@@ -17,8 +17,11 @@ from langchain_core.documents import BaseDocumentTransformer, Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import VectorStore
 
-IMPORT_PATHWAY_ERROR_MESSAGE = "Could not import pathway python package. " \
-                               "Please install it with `pip install pathway`."
+IMPORT_PATHWAY_ERROR_MESSAGE = (
+    "Could not import pathway python package. "
+    "Please install it with `pip install pathway`."
+)
+
 
 class PathwayVectorServer:
     """
