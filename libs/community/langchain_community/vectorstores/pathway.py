@@ -11,7 +11,7 @@ PathwayVectorServer to retrieve up-to-date documents.
 
 """
 
-from typing import TYPE_CHECKING, Callable, List, Optional
+from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
 
 from langchain_core.documents import BaseDocumentTransformer, Document
 from langchain_core.embeddings import Embeddings
@@ -152,6 +152,45 @@ class PathwayVectorClient(VectorStore):
         return [
             Document(page_content=ret["text"], metadata=ret["metadata"]) for ret in rets
         ]
+
+    def similarity_search_with_score(
+        self,
+        query: str,
+        k: int = 4,
+        metadata_filter: Optional[str] = None,
+    ) -> List[Tuple[Document, float]]:
+        """Run similarity search with Pathway with distance.
+
+        Args:
+            - query (str): Query text to search for.
+            - k (int): Number of results to return. Defaults to 4.
+            - metadata_filter (Optional[str]): Filter by metadata.
+                Filtering query should be in JMESPath format. Defaults to None.
+
+        Returns:
+            List[Tuple[Document, float]]: List of documents most similar to
+            the query text and cosine distance in float for each.
+            Lower score represents more similarity.
+        """
+        rets = self.client(query=query, k=k, metadata_filter=metadata_filter)
+
+        return [
+            (Document(page_content=ret["text"], metadata=ret["metadata"]), ret["dist"])
+            for ret in rets
+        ]
+
+    def _select_relevance_score_fn(self) -> Callable[[float], float]:
+        """
+        The 'correct' relevance function
+        may differ depending on a few things, including:
+        - the distance / similarity metric used by the VectorStore
+        - the scale of your embeddings (OpenAI's are unit normed. Many others are not!)
+        - embedding dimensionality
+        - etc.
+
+        Vectorstores should define their own selection based method of relevance.
+        """
+        return self._cosine_relevance_score_fn
 
     def get_vectorstore_statistics(self):
         """Fetch basic statistics about the Vector Store."""
