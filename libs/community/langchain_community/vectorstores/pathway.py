@@ -180,16 +180,6 @@ class PathwayVectorClient(VectorStore):
         ]
 
     def _select_relevance_score_fn(self) -> Callable[[float], float]:
-        """
-        The 'correct' relevance function
-        may differ depending on a few things, including:
-        - the distance / similarity metric used by the VectorStore
-        - the scale of your embeddings (OpenAI's are unit normed. Many others are not!)
-        - embedding dimensionality
-        - etc.
-
-        Vectorstores should define their own selection based method of relevance.
-        """
         return self._cosine_relevance_score_fn
 
     def get_vectorstore_statistics(self):
