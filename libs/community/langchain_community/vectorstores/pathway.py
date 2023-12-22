@@ -11,15 +11,14 @@ PathwayVectorServer to retrieve up-to-date documents.
 
 """
 
-from typing import TYPE_CHECKING, Callable, List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from langchain_core.documents import BaseDocumentTransformer, Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import VectorStore
 
-if TYPE_CHECKING:
-    from pathway.xpacks.llm import vector_store
-
+IMPORT_PATHWAY_ERROR_MESSAGE = "Could not import pathway python package. " \
+                               "Please install it with `pip install pathway`."
 
 class PathwayVectorServer:
     """
@@ -45,10 +44,7 @@ class PathwayVectorServer:
         try:
             from pathway.xpacks.llm import vector_store
         except ImportError:
-            raise ImportError(
-                "Could not import pathway python package. "
-                "Please install it with `pip install pathway`."
-            )
+            raise ImportError(IMPORT_PATHWAY_ERROR_MESSAGE)
 
         generic_parser = None
         if parser:
@@ -100,10 +96,7 @@ class PathwayVectorServer:
         try:
             import pathway as pw
         except ImportError:
-            raise ImportError(
-                "Could not import pathway python package. "
-                "Please install it with `pip install pathway`."
-            )
+            raise ImportError(IMPORT_PATHWAY_ERROR_MESSAGE)
         if with_cache and cache_backend is None:
             cache_backend = pw.persistence.Backend.filesystem("./Cache")
         return self.vector_store_server.run_server(
@@ -125,6 +118,10 @@ class PathwayVectorClient(VectorStore):
         host,
         port,
     ) -> None:
+        try:
+            from pathway.xpacks.llm import vector_store
+        except ImportError:
+            raise ImportError(IMPORT_PATHWAY_ERROR_MESSAGE)
         self.client = vector_store.VectorStoreClient(host, port)
 
     def add_texts(
