@@ -13,102 +13,96 @@ PathwayVectorServer to retrieve up-to-date documents.
 
 from typing import Callable, List, Optional, Tuple
 
+import json
+import requests
+
 from langchain_core.documents import BaseDocumentTransformer, Document
 from langchain_core.embeddings import Embeddings
 from langchain_core.vectorstores import VectorStore
 
-IMPORT_PATHWAY_ERROR_MESSAGE = (
-    "Could not import pathway python package. "
-    "Please install it with `pip install pathway`."
-)
 
-
-class PathwayVectorServer:
+# Copied from https://github.com/pathwaycom/pathway/blob/main/python/pathway/xpacks/llm/vector_store.py
+# to remove dependency on Pathway library.
+class _VectorStoreClient:
     """
-    Build an autoupdating document indexing pipeline
-    for approximate nearest neighbor search.
+    A client you can use to query :py:class:`VectorStoreServer`.
 
     Args:
-        - docs: pathway tables typically coming out of connectors which contain
-        source documents.
-        - embedder: embedding model e.g. OpenAIEmbeddings
-        - parser: callable that parses file contents into a list of documents
-        - splitter: document splitter, e.g. CharacterTextSplitter
+        - host: host on which `:py:class:`VectorStoreServer` listens
+        - port: port on which `:py:class:`VectorStoreServer` listens
     """
 
-    def __init__(
-        self,
-        *docs,
-        embedder: Embeddings,
-        parser: Optional[Callable[[bytes], List[Document]]] = None,
-        splitter: Optional[BaseDocumentTransformer] = None,
-        **kwargs,
-    ) -> None:
-        try:
-            from pathway.xpacks.llm import vector_store
-        except ImportError:
-            raise ImportError(IMPORT_PATHWAY_ERROR_MESSAGE)
+    def __init__(self, host, port):
+        self.host = host
+        self.port = port
 
-        generic_parser = None
-        if parser:
-            generic_parser = lambda x: [  # noqa
-                (doc.page_content, doc.metadata) for doc in parser(x)
-            ]
-
-        generic_splitter = None
-        if splitter:
-            generic_splitter = lambda x: [  # noqa
-                (doc.page_content, doc.metadata)
-                for doc in splitter.transform_documents([Document(page_content=x)])
-            ]
-        generic_embedded = lambda x: embedder.embed_documents([x])[0]  # noqa
-
-        self.vector_store_server = vector_store.VectorStoreServer(
-            *docs,
-            embedder=generic_embedded,
-            parser=generic_parser,
-            splitter=generic_splitter,
-            **kwargs,
-        )
-
-    def run_server(
-        self,
-        host,
-        port,
-        threaded=False,
-        with_cache=True,
-        cache_backend=None,
-    ):
+    def query(
+        self, query: str, k: int = 3, metadata_filter: Optional[str] = None
+    ) -> list[dict]:
         """
-        Run the server and start answering queries.
+        Perform a query to the vector store and fetch results.
 
         Args:
-            - host: host to bind the HTTP listener
-            - port: port to bind the HTTP listener
-            - threaded: if True, run in a thread. Else block computation
-            - with_cache: if True, embedding requests for the same contents are cached
-            - cache_backend: the backend to use for caching if it is enabled. The
-              default is the disk cache, hosted locally in the folder ``./Cache``. You
-              can use ``Backend`` class of the [`persistence API`]
-              (/developers/api-docs/persistence-api/#pathway.persistence.Backend)
-              to override it.
-
-        Returns:
-            If threaded, return the Thread object. Else, does not return.
+            - query:
+            - k: number of documents to be returned
+            - metadata_filter: optional string representing the metadata filtering query
+                in the JMESPath format. The search will happen only for documents
+                satisfying this filtering.
         """
-        try:
-            import pathway as pw
-        except ImportError:
-            raise ImportError(IMPORT_PATHWAY_ERROR_MESSAGE)
-        if with_cache and cache_backend is None:
-            cache_backend = pw.persistence.Backend.filesystem("./Cache")
-        return self.vector_store_server.run_server(
-            host,
-            port,
-            threaded=threaded,
-            with_cache=with_cache,
-            cache_backend=cache_backend,
+
+        data = {"query": query, "k": k}
+        if metadata_filter is not None:
+            data["metadata_filter"] = metadata_filter
+        url = f"http://{self.host}:{self.port}/v1/retrieve"
+        response = requests.post(
+            url,
+            data=json.dumps(data),
+            headers={"Content-Type": "application/json"},
+            timeout=3,
         )
+        responses = response.json()
+        return sorted(responses, key=lambda x: x["dist"])
+
+    # Make an alias
+    __call__ = query
+
+    def get_vectorstore_statistics(self):
+        """Fetch basic statistics about the vector store."""
+        url = f"http://{self.host}:{self.port}/v1/statistics"
+        response = requests.post(
+            url,
+            json={},
+            headers={"Content-Type": "application/json"},
+        )
+        responses = response.json()
+        return responses
+
+    def get_input_files(
+        self,
+        metadata_filter: Optional[str] = None,
+        filepath_globpattern: Optional[str] = None,
+    ):
+        """
+        Fetch information on documents in the the vector store.
+
+        Args:
+            metadata_filter: optional string representing the metadata filtering query
+                in the JMESPath format. The search will happen only for documents
+                satisfying this filtering.
+            filepath_globpattern: optional glob pattern specifying which documents
+                will be searched for this query.
+        """
+        url = f"http://{self.host}:{self.port}/v1/inputs"
+        response = requests.post(
+            url,
+            json={
+                "metadata_filter": metadata_filter,
+                "filepath_globpattern": filepath_globpattern,
+            },
+            headers={"Content-Type": "application/json"},
+        )
+        responses = response.json()
+        return responses
 
 
 class PathwayVectorClient(VectorStore):
@@ -121,11 +115,7 @@ class PathwayVectorClient(VectorStore):
         host,
         port,
     ) -> None:
-        try:
-            from pathway.xpacks.llm import vector_store
-        except ImportError:
-            raise ImportError(IMPORT_PATHWAY_ERROR_MESSAGE)
-        self.client = vector_store.VectorStoreClient(host, port)
+        self.client = _VectorStoreClient(host, port)
 
     def add_texts(
         self,
