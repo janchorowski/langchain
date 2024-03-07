@@ -36,7 +36,7 @@ class _VectorStoreClient:
 
     def query(
         self, query: str, k: int = 3, metadata_filter: Optional[str] = None
-    ) -> list[dict]:
+    ) -> List[dict]:
         """
         Perform a query to the vector store and fetch results.
 
