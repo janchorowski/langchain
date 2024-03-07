@@ -11,11 +11,10 @@ PathwayVectorServer to retrieve up-to-date documents.
 
 """
 
+import json
 from typing import Callable, List, Optional, Tuple
 
-import json
 import requests
-
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 
