@@ -10,16 +10,15 @@ import requests
 
 from langchain_community.vectorstores.pathway import (
     PathwayVectorClient,
-    PathwayVectorServer,
 )
 from tests.integration_tests.vectorstores.fake_embeddings import FakeEmbeddings
 
 PATHWAY_HOST = "127.0.0.1"
 PATHWAY_PORT = 8764
 
-
 def pathway_server(tmp_path):
     import pathway as pw
+    from pathway.xpacks.llm.vector_store import VectorStoreServer
 
     data_sources = []
     data_sources.append(
@@ -32,8 +31,9 @@ def pathway_server(tmp_path):
     )
 
     embeddings_model = FakeEmbeddings()
+    embedder = lambda x: embeddings_model.embed_documents([x])[0]  # noqa
 
-    vector_server = PathwayVectorServer(*data_sources, embedder=embeddings_model)
+    vector_server = VectorStoreServer(*data_sources, embedder=embedder)
     thread = vector_server.run_server(
         host=PATHWAY_HOST,
         port=PATHWAY_PORT,
@@ -66,7 +66,7 @@ def test_similarity_search_without_metadata(tmp_path: pathlib.Path) -> None:
             pass
         else:
             break
-        time.sleep(1)
+        time.sleep(3)
         attempts += 1
     p.terminate()
     time.sleep(2)
