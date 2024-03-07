@@ -16,6 +16,7 @@ from tests.integration_tests.vectorstores.fake_embeddings import FakeEmbeddings
 PATHWAY_HOST = "127.0.0.1"
 PATHWAY_PORT = 8764
 
+
 def pathway_server(tmp_path):
     import pathway as pw
     from pathway.xpacks.llm.vector_store import VectorStoreServer
