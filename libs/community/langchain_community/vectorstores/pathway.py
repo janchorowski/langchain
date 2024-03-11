@@ -22,17 +22,32 @@ from langchain_core.vectorstores import VectorStore
 # Copied from https://github.com/pathwaycom/pathway/blob/main/python/pathway/xpacks/llm/vector_store.py
 # to remove dependency on Pathway library.
 class _VectorStoreClient:
-    """
-    A client you can use to query :py:class:`VectorStoreServer`.
+    def __init__(
+        self, 
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        url: Optional[str] = None,
+    ):
+        """
+        A client you can use to query :py:class:`VectorStoreServer`.
 
-    Args:
-        - host: host on which `:py:class:`VectorStoreServer` listens
-        - port: port on which `:py:class:`VectorStoreServer` listens
-    """
+        Please provide aither the `url`, or `host` and `port`.
 
-    def __init__(self, host, port):
-        self.host = host
-        self.port = port
+        Args:
+            - host: host on which `:py:class:`VectorStoreServer` listens
+            - port: port on which `:py:class:`VectorStoreServer` listens
+            - url: url at which `:py:class:`VectorStoreServer` listens
+        """
+        err = "Either (`host` and `port`) or `url` must be provided, but not both."
+        if url is not None:
+            if host or port:
+                raise ValueError(err)
+            self.url = url
+        else:
+            if host is None:
+                raise ValueError(err)
+            port = port or 80
+            self.url = f"http://{host}:{port}"
 
     def query(
         self, query: str, k: int = 3, metadata_filter: Optional[str] = None
@@ -51,7 +66,7 @@ class _VectorStoreClient:
         data = {"query": query, "k": k}
         if metadata_filter is not None:
             data["metadata_filter"] = metadata_filter
-        url = f"http://{self.host}:{self.port}/v1/retrieve"
+        url = self.url + "/v1/retrieve"
         response = requests.post(
             url,
             data=json.dumps(data),
@@ -66,7 +81,8 @@ class _VectorStoreClient:
 
     def get_vectorstore_statistics(self):
         """Fetch basic statistics about the vector store."""
-        url = f"http://{self.host}:{self.port}/v1/statistics"
+
+        url = self.url + "/v1/statistics"
         response = requests.post(
             url,
             json={},
@@ -90,7 +106,7 @@ class _VectorStoreClient:
             filepath_globpattern: optional glob pattern specifying which documents
                 will be searched for this query.
         """
-        url = f"http://{self.host}:{self.port}/v1/inputs"
+        url = self.url + "/v1/inputs"
         response = requests.post(
             url,
             json={
@@ -105,15 +121,26 @@ class _VectorStoreClient:
 
 class PathwayVectorClient(VectorStore):
     """
-    VectorStore connecting to PathwayVectorServer realtime data pipeline.
+    VectorStore connecting to Pathway Vector Store.
     """
 
     def __init__(
         self,
-        host,
-        port,
+        host: Optional[str] = None,
+        port: Optional[int] = None,
+        url: Optional[str] = None,
     ) -> None:
-        self.client = _VectorStoreClient(host, port)
+        """
+        A client you can use to query Pathway Vector Store.
+
+        Please provide aither the `url`, or `host` and `port`.
+
+        Args:
+            - host: host on which Pathway Vector Store listens
+            - port: port on which Pathway Vector Store listens
+            - url: url at which Pathway Vector Store listens
+        """
+        self.client = _VectorStoreClient(host, port, url)
 
     def add_texts(
         self,
