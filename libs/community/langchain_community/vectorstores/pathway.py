@@ -23,7 +23,7 @@ from langchain_core.vectorstores import VectorStore
 # to remove dependency on Pathway library.
 class _VectorStoreClient:
     def __init__(
-        self, 
+        self,
         host: Optional[str] = None,
         port: Optional[int] = None,
         url: Optional[str] = None,
